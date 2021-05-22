@@ -34,7 +34,7 @@ def welcome():
     ███  ▀ ███  ███   ███   ███ ███    ███ 
      ▀██████▀▄█  ▀█   ███   █▀  ████████▀  
 
-    {f_green}▀█{rst} Quick MAC Changer by {f_yellow}@tzero86 {f_green}█▀{rst}                                 
+     {f_green}▀█{rst} Quick MAC Changer by {f_yellow}@tzero86 {f_green}█▀{rst}                                 
           """ + Fore.RESET)
 
 
