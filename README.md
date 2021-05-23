@@ -1,14 +1,13 @@
-
-                                                            ████████▄     ▄▄▄▄███▄▄▄▄    ▄████████
-                                                            ███    ███  ▄██▀▀▀███▀▀▀██▄ ███    ███
-                                                            ███    ███  ███   ███   ███ ███    █▀  
-                                                            ███    ███  ███   ███   ███ ███        
-                                                            ███    ███  ███   ███   ███ ███        
-                                                            ███    ███  ███   ███   ███ ███    █▄  
-                                                            ███  ▀ ███  ███   ███   ███ ███    ███ 
-                                                             ▀██████▀▄█  ▀█   ███   █▀  ████████▀  
-                                                        
-                                                             ▀█ Quick MAC Changer by @tzero86█▀
+            ████████▄     ▄▄▄▄███▄▄▄▄    ▄████████
+            ███    ███  ▄██▀▀▀███▀▀▀██▄ ███    ███
+            ███    ███  ███   ███   ███ ███    █▀  
+            ███    ███  ███   ███   ███ ███        
+            ███    ███  ███   ███   ███ ███        
+            ███    ███  ███   ███   ███ ███    █▄  
+            ███  ▀ ███  ███   ███   ███ ███    ███ 
+             ▀██████▀▄█  ▀█   ███   █▀  ████████▀  
+        
+             ▀█ Quick MAC Changer by @tzero86█▀
 
 
 QMC is a super simple and rather silly utility to quickly change the MAC Address of a given interface. It supports both user entered MAC Addresses and automatically generated one following the correct format for the values. It can also be executed from the commandline.
