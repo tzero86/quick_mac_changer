@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import re
+import signal
 import subprocess
 import sys
 import generate_mac
@@ -22,34 +23,37 @@ mac = None
 
 # styles
 RST = f'{Back.RESET}{rst}'
-ERROR = f'\n{Fore.BLACK}{Back.LIGHTRED_EX} [ERROR]: {RST}'
-DEBUG = f'\n{Fore.BLACK}{Back.LIGHTYELLOW_EX} [DEBUG]: {RST}'
-INPUT = f'\n{Fore.BLACK}{Back.LIGHTGREEN_EX} [INPUT]: {RST}'
-SUCCESS = f'\n{Fore.BLACK}{Back.LIGHTGREEN_EX} [SUCCESS]: {RST}'
-ACTION = f'\n{Fore.BLACK}{Back.LIGHTBLUE_EX} '
-RESULTS = f'\n{Fore.BLACK}{Back.LIGHTCYAN_EX} [RESULTS]: {RST}'
-TESTING = f'\n{Fore.BLACK}{Back.LIGHTYELLOW_EX} [TESTING]: {RST}'
+ERROR = f'{Fore.BLACK}{Back.RED} [ERROR]:{RST}'
+DEBUG = f'{Fore.BLACK}{Back.LIGHTYELLOW_EX} [DEBUG]:{RST}'
+INPUT = f'{Fore.BLACK}{Back.GREEN} [INPUT]:{RST}'
+SUCCESS = f'{Fore.BLACK}{Back.LIGHTGREEN_EX} [SUCCESS]:{RST}'
+ACTION = f'{Fore.BLACK}{Back.LIGHTRED_EX} '
+RESULTS = f'{Fore.BLACK}{Back.WHITE} [RESULTS]:{RST}'
+TESTING = f'{Fore.BLACK}{Back.LIGHTYELLOW_EX} [TESTING]:{RST}'
 
 
 def welcome():
-    print(f_red + f"""
+    print(Fore.RED + f"""
 
 
-    ████████▄     ▄▄▄▄███▄▄▄▄    ▄████████ 
-    ███    ███  ▄██▀▀▀███▀▀▀██▄ ███    ███ 
-    ███    ███  ███   ███   ███ ███    █▀  
-    ███    ███  ███   ███   ███ ███        
-    ███    ███  ███   ███   ███ ███        
-    ███    ███  ███   ███   ███ ███    █▄  
-    ███  ▀ ███  ███   ███   ███ ███    ███ 
-     ▀██████▀▄█  ▀█   ███   █▀  ████████▀  
+     ████████▄     ▄▄▄▄███▄▄▄▄    ▄████████ 
+     ███    ███  ▄██▀▀▀███▀▀▀██▄ ███    ███ 
+     ███    ███  ███   ███   ███ ███    █▀  
+     ███    ███  ███   ███   ███ ███        
+     ███    ███  ███   ███   ███ ███        
+     ███    ███  ███   ███   ███ ███    █▄  
+     ███  ▀ ███  ███   ███   ███ ███    ███ 
+      ▀██████▀▄█  ▀█   ███   █▀  ████████▀  
 
-     {f_green}▀█{rst} Quick MAC Changer by {f_yellow}@tzero86 {f_green}█▀{rst}                                 
+   {f_green}▀█{rst} Quick MAC Changer v0.0.1 by {f_yellow}@tzero86 {f_green}█▀{rst}
+     
+Welcome to QMC, a simple utility to change MAC Addresses.                                 
           """ + Fore.RESET)
 
 
 # to handle commandline arguments and help
 def handle_commandline():
+    signal.signal(signal.SIGINT, handle_ctrl_c)
     welcome()
     check_root()
     parser = optparse.OptionParser()
@@ -83,7 +87,7 @@ def menu(target, address):
             list_interfaces()
             target_interface = str(
                 input(f"{INPUT} Enter the name of the interface or press CTRL+C to EXIT: "))
-            if target_interface and target_interface.strip():
+            if target_interface.lower() in list_interfaces():
                 new_address = str(input(f"{INPUT} Enter the MAC address or leave it blank to "
                                         f"generate one automatically: {RST}"))
                 if new_address.strip() and re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$",
@@ -91,25 +95,26 @@ def menu(target, address):
                     change_mac(target_interface, new_address)
                 else:
                     print(
-                        f'{ACTION}[GENERATE]: {RST} Generating a {f_cyan}random and properly formatted MAC '
+                        f'{ACTION}[GENERATE]:{RST} Generating a {f_cyan}random and properly formatted MAC '
                         f'address{rst} for you.')
                     try:
                         change_mac(target_interface, get_random_mac_address())
                     except:
-                        print(f'{ERROR} You MUST specify a valid '
+                        print(f'{ERROR}You MUST specify a valid '
                               f'interface name like  -> {f_cyan}wlan0{rst} or {f_cyan}enp4s0{rst}')
                         menu(None, None)
                     break
             else:
-                print(f'{ERROR} You MUST specify an interface, for example: '
-                      f'wlan0 or enp4s0.{rst}')
+                print(f'{ERROR}You MUST specify a VALID interface name. Existing Interfaces found: '
+                      f'{f_cyan}{list_interfaces()}.{rst}')
 
 
 # we need to list the network interfaces available in the system
 def list_interfaces():
-    print(f'{ACTION}[SCANNING]: {RST} Listing all available interfaces...{RST}')
+    print(f'{ACTION}[SCANNING]:{RST} Listing all available interfaces...{RST}')
     available_interfaces = interfaces()
-    print(f"{RESULTS} Interfaces Found:{RST} {f_cyan}{available_interfaces}{RST}")
+    print(f"{RESULTS} Interfaces Found: {RST} {f_cyan}{available_interfaces}{RST}")
+    return available_interfaces
 
 
 # it gets the current MAC address assigned to the interface
@@ -131,7 +136,7 @@ def check_root():
     # At least on Manjaro we need to run it with sudo for it to work.
     # I also had to install net-tools to have ifconfig working.
     if not os.geteuid() == 0:
-        sys.exit(f"{ERROR} You MUST execute this script with Sudo/Root access!\n{RST}")
+        sys.exit(f"{ERROR}You MUST execute this script with Sudo/Root access!\n{RST}")
 
 
 # we might need to make this more useful in the future
@@ -143,7 +148,7 @@ def check_mac_address_change(old, new):
 def change_mac(target_interface, new_address):
     old = get_current_mac_address(target_interface)
     print(
-        f'{ACTION}[WORKING]: {RST} Setting a new MAC address. Interface:{f_cyan} {target_interface} {rst}'
+        f'{ACTION}[WORKING]:{RST} Setting a new MAC address. Interface:{f_cyan} {target_interface} {rst}'
         f'- New MAC Address:{f_cyan} {new_address} {rst}')
     # we call the subprocesses
     subprocess.call(['ifconfig', target_interface, 'down'])
@@ -162,7 +167,13 @@ def change_mac(target_interface, new_address):
 
 
 def bye():
-    print(f'{ACTION}[Bye Bye]: {RST} Thanks for using my shitty tool!{RST}\n')
+    print(f'\n\n👋{RST} Exiting {f_red}QMC{rst}, thanks for using my shitty tool!{RST}\n')
+
+
+# Handles the user pressing CRTL+C to EXIT the program
+def handle_ctrl_c(signal, frame):
+    bye()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
