@@ -20,6 +20,16 @@ rst = Fore.RESET
 interface = None
 mac = None
 
+# styles
+RST = f'{Back.RESET}{rst}'
+ERROR = f'\n{Fore.BLACK}{Back.LIGHTRED_EX} [ERROR]: {RST}'
+DEBUG = f'\n{Fore.BLACK}{Back.LIGHTYELLOW_EX} [DEBUG]: {RST}'
+INPUT = f'\n{Fore.BLACK}{Back.LIGHTGREEN_EX} [INPUT]: {RST}'
+SUCCESS = f'\n{Fore.BLACK}{Back.LIGHTGREEN_EX} [SUCCESS]: {RST}'
+ACTION = f'\n{Fore.BLACK}{Back.LIGHTBLUE_EX} '
+RESULTS = f'\n{Fore.BLACK}{Back.LIGHTCYAN_EX} [RESULTS]: {RST}'
+TESTING = f'\n{Fore.BLACK}{Back.LIGHTYELLOW_EX} [TESTING]: {RST}'
+
 
 def welcome():
     print(f_red + f"""
@@ -56,11 +66,11 @@ def handle_commandline():
     else:
         try:
             print(
-                f'{f_yellow}[DEBUG] Commandline Parameters Recv: Interface: {options.net_interface} - '
-                f'MAC: {options.mac_address}{rst}')
+                f'{DEBUG} Commandline Parameters Recv: Interface: {rst}'
+                f'{f_cyan}{options.net_interface}{rst} - MAC: {f_cyan}{options.mac_address}{rst}')
             menu(options.net_interface, options.mac_address)
         except:
-            print(f'{f_yellow}[DEBUG ERROR] No OPTS detected!{rst}')
+            # print(f'{f_yellow}[DEBUG ERROR] No OPTS detected!{rst}')
             menu(-1, -1)
 
 
@@ -72,74 +82,87 @@ def menu(target, address):
         while True:
             list_interfaces()
             target_interface = str(
-                input(f"{f_green}[Select Interface]{rst} Enter the name of the interface or press "
-                      "CTRL+C to EXIT: "))
+                input(f"{INPUT} Enter the name of the interface or press CTRL+C to EXIT: "))
             if target_interface and target_interface.strip():
-                new_address = str(input(f"{f_green}[Input MAC Address]{rst} Enter the MAC address or leave it blank to "
-                                        "generate one automatically: " + rst))
+                new_address = str(input(f"{INPUT} Enter the MAC address or leave it blank to "
+                                        f"generate one automatically: {RST}"))
                 if new_address.strip() and re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$",
                                                     new_address.lower()):
                     change_mac(target_interface, new_address)
                 else:
                     print(
-                        f'{f_red}[ERROR] For some reason we did not like that MAC Address, generating a random one for '
-                        f'you.{rst}')
+                        f'{ACTION}[GENERATE]: {RST} Generating a {f_cyan}random and properly formatted MAC '
+                        f'address{rst} for you.')
                     try:
                         change_mac(target_interface, get_random_mac_address())
                     except:
-                        print(f'{f_red}[ERROR] You MUST specify a valid interface name like  -> {f_cyan}wlan0{rst} '
-                              f'or {f_cyan}enp4s0{rst}')
+                        print(f'{ERROR} You MUST specify a valid '
+                              f'interface name like  -> {f_cyan}wlan0{rst} or {f_cyan}enp4s0{rst}')
                         menu(None, None)
                     break
             else:
-                print(f'{f_red}[ERROR] You MUST specify an interface, for example -> wlan0 or enp4s0.{rst}')
+                print(f'{ERROR} You MUST specify an interface, for example: '
+                      f'wlan0 or enp4s0.{rst}')
 
 
 # we need to list the network interfaces available in the system
 def list_interfaces():
-    print(f'{f_green}[Interfaces Scan]{rst} Listing all available interfaces...{rst}')
+    print(f'{ACTION}[SCANNING]: {RST} Listing all available interfaces...{RST}')
     available_interfaces = interfaces()
-    print(f"{f_green}[Interfaces Found] -> {f_cyan}{available_interfaces}{rst}")
+    print(f"{RESULTS} Interfaces Found:{RST} {f_cyan}{available_interfaces}{RST}")
 
 
 # it gets the current MAC address assigned to the interface
 def get_current_mac_address(target_interface):
     mac_addr = netifaces.ifaddresses(target_interface)[netifaces.AF_LINK]
     print(
-        f'{f_green}[Current MAC address]{rst} interface:{f_cyan} {target_interface} {rst}- MAC: '
-        f'{f_cyan}{mac_addr[0]["addr"]}{rst}')
+        f'{TESTING}\n- Interface:{f_cyan} {target_interface} {RST}\n- Current MAC: {f_cyan}{mac_addr[0]["addr"]}{RST}')
+    return mac_addr
 
 
 # generates a random properly formatted MAC Address
 def get_random_mac_address():
-    return str(generate_mac.generate_mac.total_random())
+    generated_mac = str(generate_mac.generate_mac.total_random())
+    print(f'{RESULTS}{RST} New MAC Address generated: {f_cyan}{generated_mac}{RST}')
+    return generated_mac
 
 
 def check_root():
     # At least on Manjaro we need to run it with sudo for it to work.
     # I also had to install net-tools to have ifconfig working.
     if not os.geteuid() == 0:
-        sys.exit(f"{f_red}\n[ERROR] You Need to execute this script with Sudo/Root access!\n{rst}")
+        sys.exit(f"{ERROR} You MUST execute this script with Sudo/Root access!\n{RST}")
+
+
+# we might need to make this more useful in the future
+def check_mac_address_change(old, new):
+    print(f'{TESTING} It seems the MAC address has been successfully updated.')
+    return old != new
 
 
 def change_mac(target_interface, new_address):
-    get_current_mac_address(target_interface)
+    old = get_current_mac_address(target_interface)
     print(
-        f'{f_green}[Setting new MAC Address]{rst} Interface:{f_cyan} {target_interface} {rst}'
+        f'{ACTION}[WORKING]: {RST} Setting a new MAC address. Interface:{f_cyan} {target_interface} {rst}'
         f'- New MAC Address:{f_cyan} {new_address} {rst}')
     # we call the subprocesses
     subprocess.call(['ifconfig', target_interface, 'down'])
     subprocess.call(['ifconfig', target_interface, 'hw', 'ether', new_address])
     subprocess.call(['ifconfig', target_interface, 'up'])
-    get_current_mac_address(target_interface)
-    print(
-        f'\n{Back.LIGHTGREEN_EX}{Fore.BLACK}[SUCCESS]{rst}{Back.RESET} New MAC address {new_address} has been assigned'
-        f' to the target interface {target_interface}{rst}')
-    bye()
+    new = get_current_mac_address(target_interface)
+    if check_mac_address_change(old, new):
+        print(
+            f'\n{SUCCESS} New MAC address {f_cyan}{new_address}{RST} '
+            f'has been assigned to the target interface {f_cyan}{target_interface}{rst}')
+        bye()
+    else:
+        print(f"{ERROR} Something went wrong when trying to change the MAC. You'll have to try again, sorry."
+              f"\n{RST}")
+        handle_commandline()
 
 
 def bye():
-    print(f'\n{f_green}[Bye Bye]{f_red} and thanks for using my shitty tool!{rst}\n')
+    print(f'{ACTION}[Bye Bye]: {RST} Thanks for using my shitty tool!{RST}\n')
 
 
 if __name__ == "__main__":
