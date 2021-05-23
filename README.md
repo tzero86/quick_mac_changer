@@ -1,8 +1,17 @@
-# QMC: a Quick MAC Address Changer utility
-![](https://i.imgur.com/ci01dBz.png)
 
-This is super simple and rather silly utility to quickly change the MAC Address of a given interface.
-It supports both user entered MAC Addresses and automatically generated ones following the correct format for the values.
+                                                            ████████▄     ▄▄▄▄███▄▄▄▄    ▄████████
+                                                            ███    ███  ▄██▀▀▀███▀▀▀██▄ ███    ███
+                                                            ███    ███  ███   ███   ███ ███    █▀  
+                                                            ███    ███  ███   ███   ███ ███        
+                                                            ███    ███  ███   ███   ███ ███        
+                                                            ███    ███  ███   ███   ███ ███    █▄  
+                                                            ███  ▀ ███  ███   ███   ███ ███    ███ 
+                                                             ▀██████▀▄█  ▀█   ███   █▀  ████████▀  
+                                                        
+                                                             ▀█ Quick MAC Changer by @tzero86█▀
+
+
+QMC is a super simple and rather silly utility to quickly change the MAC Address of a given interface. It supports both user entered MAC Addresses and automatically generated one following the correct format for the values. It can also be executed from the commandline.
 
 
 ## Installation 
@@ -13,8 +22,9 @@ It supports both user entered MAC Addresses and automatically generated ones fol
 Execute by running: `sudo python3 qmc.py`
 
 ## Usage
-The tool is very simple to use. It will automatically detect and list the available Network Interfaces. Tha way
-you can quickly epecify which interface you want the MAC addres getting changed for.
+![](https://i.imgur.com/ci01dBz.png)
+
+As you can probably have guessed from the image above, QMC is very simple to use. It will automatically detect and list the available Network Interfaces. That way you can quickly Specify which interface you want the MAC address getting changed for and get it done in seconds.
 
 
 ## Commandline Usage
@@ -24,7 +34,7 @@ This tool also supports getting called from the commandline, see the help for de
 
 Simply run: `sudo python3 qmc.py -h` to see the options you can specify.
 
-For Example if you wan to change the MAC Address of WLAN0, run:
+For Example if you want to change the MAC Address of WLAN0, run:
 ``bash
 sudo python3 qmc.py -i wlan0 -m 00:11:22:33:44:55
 ``
